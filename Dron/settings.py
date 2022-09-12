@@ -141,4 +141,4 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'https://dron-xeres-q10.herokuapp.com/']
+ALLOWED_HOSTS = ['127.0.0.1', 'dron-xeres-q10.herokuapp.com']
