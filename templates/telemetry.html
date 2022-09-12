@@ -1,0 +1,187 @@
+{% extends 'base.html' %} {% block content %} {% load static %}
+
+<!-- Page Header Start -->
+<div class="container-fluid page-header py-5 mb-5">
+  <div class="container py-5">
+    <h1 class="display-3 text-white mb-3 animated slideInDown">Telemetría</h1>
+  </div>
+</div>
+<!-- Page Header End -->
+
+<!-- Service Start -->
+<div class="container-xxl py-5">
+  <div class="container">
+    <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px">
+      <h1 class="mb-4">Monitoreo del sistema en vivo</h1>
+      <div class="row g-4">
+        <div class="d-flex">
+          <div class="col-lg-4 col-md-6">
+            <h3>Batería</h3>
+          </div>
+          <div class="col-lg-6 col-md-8 wow fadeInUp" data-wow-delay="0.5s">
+            <div class="progress">
+              <div id="hola">80</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th class="table-secondary" scope="col">Variable</th>
+            <th class="table-secondary" scope="col">Valor</th>
+            <th class="table-secondary" scope="col">Unidades</th>
+          </tr>
+        </thead>
+        <tbody id="display"></tbody>
+      </table>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.1.js" integrity="sha256-3zlB5s2uwoUzrXK3BT7AX3FyvojsraNFxCc2vC/7pNI=" crossorigin="anonymous"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js"
+      integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      $(document).ready(function () {
+        setInterval(function () {
+          $.ajax({
+            xhr: function () {
+              var xhr = new window.XMLHttpRequest();
+              //Upload progress
+              xhr.upload.addEventListener(
+                "progress",
+                function (evt) {
+                  if (evt.lengthComputable) {
+                    var percentComplete = evt.loaded / evt.total;
+                    //Do something with upload progress
+                    console.log(percentComplete);
+                  }
+                },
+                false
+              );
+              xhr.addEventListener(
+                "progress",
+                function (evt) {
+                  if (evt.lengthComputable) {
+                    var percentComplete = evt.loaded / evt.total;
+                    //Do something with download progress
+                    console.log(percentComplete);
+                  }
+                },
+                false
+              );
+              return xhr;
+            },
+            type: "GET",
+            url: "{% url 'getvalores' %}",
+            success: function (response) {
+              $("#display").empty();
+              for (var key in response.users) {
+                var temp =
+                  "<tr><th scope='row'>" +
+                  1 +
+                  "</th><td>" +
+                  "Altitud" +
+                  "</td><td>" +
+                  response.users[key].altitud +
+                  "</td><td>" +
+                  "Metros" +
+                  "</td></tr>" +
+                  "<tr><th scope='row'>" +
+                  2 +
+                  "</th><td>" +
+                  "Latitud" +
+                  "</td><td>" +
+                  response.users[key].latitud +
+                  "</td><td>" +
+                  "Metros" +
+                  "</td></tr>" +
+                  "<tr><th scope='row'>" +
+                  3 +
+                  "</th><td>" +
+                  "Longitud" +
+                  "</td><td>" +
+                  response.users[key].longitud +
+                  "</td><td>" +
+                  "Metros" +
+                  "</td></tr>" +
+                  "<tr><th scope='row'>" +
+                  4 +
+                  "</th><td>" +
+                  "Velocidad" +
+                  "</td><td>" +
+                  response.users[key].velocidad +
+                  "</td><td>" +
+                  "Metros/Segundos" +
+                  "</td></tr>" +
+                  "<tr><th scope='row'>" +
+                  5 +
+                  "</th><td>" +
+                  "Voltaje" +
+                  "</td><td>" +
+                  response.users[key].volt_bateria +
+                  "</td><td>" +
+                  "Metros/Segundos" +
+                  "</td></tr>";
+                "<tr><th scope='row'>" +
+                  6 +
+                  "</th><td>" +
+                  "Corriente" +
+                  "</td><td>" +
+                  response.users[key].curr_bateria +
+                  "</td><td>" +
+                  "Metros/Segundos" +
+                  "</td></tr>";
+
+                $("#display").append(temp);
+                $("#hola").append(hola);
+              }
+            },
+            error: function (response) {
+              alert("No data Found");
+            },
+          });
+        }, 1000);
+      });
+    </script>
+
+    <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px">
+      <div id="googleMap" style="width: 100%; height: 400px"></div>
+
+      <script>
+        function myMap() {
+          var mapProp = {
+            center: new google.maps.LatLng(4.63056, -74.08623),
+            zoom: 100,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+          };
+          // Agregando el mapa al tag de id googleMap
+          var map = new google.maps.Map(document.getElementById("googleMap"), mapProp);
+
+          // Creando un marker en el mapa
+          var marker = new google.maps.Marker({
+            position: new google.maps.LatLng(4.63056, -74.08623),
+            map: map,
+            title: "Hello World!",
+          });
+        }
+
+        // Inicializando el mapa cuando se carga la página
+        google.maps.event.addDomListener(window, "load", initialize);
+      </script>
+
+      <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyARaHq5Qz34Z66eZsgQpmCW149xZLbsgPw&callback=myMap"></script>
+    </div>
+  </div>
+</div>
+<!-- Service End -->
+
+{% endblock %}
