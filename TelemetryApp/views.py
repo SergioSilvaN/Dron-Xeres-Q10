@@ -53,9 +53,5 @@ def logoutUser(request):
 
 def get_variablesa(_request):
     var=variable.objects.order_by('-id')[:1]
-    print(var)
-    
-
-    
     
     return JsonResponse({"users":list(var.values())})
