@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-4g^(3ktv&y-i$s+3@ze@j6x8^-(l!8pa5vdja&t%%512@4za%+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'dron-xeres-q10.herokuapp.com']
 
 
 # Application definition
@@ -140,5 +140,3 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-ALLOWED_HOSTS = ['127.0.0.1', 'dron-xeres-q10.herokuapp.com']
