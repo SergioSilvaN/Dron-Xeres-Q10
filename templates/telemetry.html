@@ -24,21 +24,39 @@
             </div>
           </div>
         </div>
+        <div id="Fila1" class="container">
+          <div id="lon" class="x">
+            <canvas id="Longitud"></canvas>
+          </div>
+          <div id="lat" class="x">
+            <canvas id="Latitud"></canvas>
+          </div>
+        </div>
+
+        <div id="Fila" class="container">
+          <div id="alt" class="x">
+            <canvas id="Altitud"></canvas>
+          </div>
+
+          <div id="vel" class="x">
+            <canvas id="Velocidad"></canvas>
+          </div>
+        </div>
+
+        <div id="Fila2" class="container">
+          <div id="vol" class="x">
+            <canvas id="Voltaje"></canvas>
+          </div>
+          <!--ygyro-->
+          <div id="corr" class="x">
+            <canvas id="Corriente"></canvas>
+          </div>
+          <!--zgyro-->
+        </div>
+        <!--gyroContainer-->
       </div>
     </div>
-    <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px">
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col"></th>
-            <th class="table-secondary" scope="col">Variable</th>
-            <th class="table-secondary" scope="col">Valor</th>
-            <th class="table-secondary" scope="col">Unidades</th>
-          </tr>
-        </thead>
-        <tbody id="display"></tbody>
-      </table>
-    </div>
+    <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px"></div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -48,110 +66,8 @@
       integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
       crossorigin="anonymous"
     ></script>
-
-    <script>
-      $(document).ready(function () {
-        setInterval(function () {
-          $.ajax({
-            xhr: function () {
-              var xhr = new window.XMLHttpRequest();
-              //Upload progress
-              xhr.upload.addEventListener(
-                "progress",
-                function (evt) {
-                  if (evt.lengthComputable) {
-                    var percentComplete = evt.loaded / evt.total;
-                    //Do something with upload progress
-                    console.log(percentComplete);
-                  }
-                },
-                false
-              );
-              xhr.addEventListener(
-                "progress",
-                function (evt) {
-                  if (evt.lengthComputable) {
-                    var percentComplete = evt.loaded / evt.total;
-                    //Do something with download progress
-                    console.log(percentComplete);
-                  }
-                },
-                false
-              );
-              return xhr;
-            },
-            type: "GET",
-            url: "{% url 'getvalores' %}",
-            success: function (response) {
-              $("#display").empty();
-              for (var key in response.users) {
-                var temp =
-                  "<tr><th scope='row'>" +
-                  1 +
-                  "</th><td>" +
-                  "Altitud" +
-                  "</td><td>" +
-                  response.users[key].altitud +
-                  "</td><td>" +
-                  "Metros" +
-                  "</td></tr>" +
-                  "<tr><th scope='row'>" +
-                  2 +
-                  "</th><td>" +
-                  "Latitud" +
-                  "</td><td>" +
-                  response.users[key].latitud +
-                  "</td><td>" +
-                  "Metros" +
-                  "</td></tr>" +
-                  "<tr><th scope='row'>" +
-                  3 +
-                  "</th><td>" +
-                  "Longitud" +
-                  "</td><td>" +
-                  response.users[key].longitud +
-                  "</td><td>" +
-                  "Metros" +
-                  "</td></tr>" +
-                  "<tr><th scope='row'>" +
-                  4 +
-                  "</th><td>" +
-                  "Velocidad" +
-                  "</td><td>" +
-                  response.users[key].velocidad +
-                  "</td><td>" +
-                  "Metros/Segundos" +
-                  "</td></tr>" +
-                  "<tr><th scope='row'>" +
-                  5 +
-                  "</th><td>" +
-                  "Voltaje" +
-                  "</td><td>" +
-                  response.users[key].volt_bateria +
-                  "</td><td>" +
-                  "Metros/Segundos" +
-                  "</td></tr>";
-                "<tr><th scope='row'>" +
-                  6 +
-                  "</th><td>" +
-                  "Corriente" +
-                  "</td><td>" +
-                  response.users[key].curr_bateria +
-                  "</td><td>" +
-                  "Metros/Segundos" +
-                  "</td></tr>";
-
-                $("#display").append(temp);
-                $("#hola").append(hola);
-              }
-            },
-            error: function (response) {
-              alert("No data Found");
-            },
-          });
-        }, 1000);
-      });
-    </script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
 
     <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.05s" style="max-width: 600px">
       <div id="googleMap" style="width: 100%; height: 400px"></div>
@@ -184,4 +100,274 @@
 </div>
 <!-- Service End -->
 
+<script>
+  window.onload = function () {
+    //Configuration variables
+    var updateInterval = 200; //in ms
+    var numberElements = 20;
+
+    //Globals
+    var updateCount = 0;
+
+    // Chart Objects
+    var Longitud = $("#Longitud");
+    var Latitud = $("#Latitud");
+    var Altitud = $("#Altitud");
+    var Velocidad = $("#Velocidad");
+    var Voltaje = $("#Voltaje");
+    var Corriente = $("#Corriente");
+    //chart instances & configuration
+
+    var commonOptions = {
+      scales: {
+        xAxes: [
+          {
+            type: "time",
+            time: {
+              displayFormats: {
+                millisecond: "mm:ss:SSS",
+              },
+            },
+          },
+        ],
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+            },
+          },
+        ],
+      },
+      legend: { display: false },
+      tooltips: {
+        enabled: false,
+      },
+    };
+    var LongitudInstance = new Chart(Longitud, {
+      type: "line",
+
+      data: {
+        datasets: [
+          {
+            label: "Longitud",
+            data: 0,
+            fill: false,
+            borderColor: "#343e9a",
+            pointRadius: 1,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Longitud",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    var LatitudInstance = new Chart(Latitud, {
+      type: "line",
+
+      data: {
+        datasets: [
+          {
+            label: "Latitud",
+            data: 0,
+            fill: false,
+            pointRadius: 1,
+            borderColor: "#343e9a",
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Latitud",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    var AltitudInstance = new Chart(Altitud, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: "Altitud",
+            data: 0,
+            fill: false,
+            borderColor: "#343e9a",
+            pointRadius: 1,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Altitud",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    var VelocidadInstance = new Chart(Velocidad, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: "Velocidad",
+            data: 0,
+            fill: false,
+            borderColor: "#343e9a",
+            pointRadius: 1,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Velocidad",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    var VoltajeInstance = new Chart(Voltaje, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: "Voltaje",
+            data: 0,
+            fill: false,
+            borderColor: "#343e9a",
+            pointRadius: 1,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Voltaje",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    var CorrienteInstance = new Chart(Corriente, {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: "Corriente",
+            data: 0,
+            fill: false,
+            borderColor: "#343e9a",
+            pointRadius: 1,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: Object.assign({}, commonOptions, {
+        title: {
+          display: true,
+          text: "Corriente",
+          fontSize: 18,
+        },
+      }),
+    });
+
+    function addData(data) {
+      if (data) {
+        LongitudInstance.data.labels.push(new Date());
+        LongitudInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["longitud"]);
+        });
+        LatitudInstance.data.labels.push(new Date());
+        LatitudInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["latitud"]);
+        });
+        AltitudInstance.data.labels.push(new Date());
+        AltitudInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["altitud"]);
+        });
+        VelocidadInstance.data.labels.push(new Date());
+        VelocidadInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["velocidad"]);
+        });
+        VoltajeInstance.data.labels.push(new Date());
+        VoltajeInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["volt_bateria"]);
+        });
+        CorrienteInstance.data.labels.push(new Date());
+        CorrienteInstance.data.datasets.forEach((dataset) => {
+          dataset.data.push(data["curr_bateria"]);
+        });
+        if (updateCount > numberElements) {
+          LongitudInstance.data.labels.shift();
+          LongitudInstance.data.datasets[0].data.shift();
+          LatitudInstance.data.labels.shift();
+          LatitudInstance.data.datasets[0].data.shift();
+          AltitudInstance.data.labels.shift();
+          AltitudInstance.data.datasets[0].data.shift();
+          VelocidadInstance.data.labels.shift();
+          VelocidadInstance.data.datasets[0].data.shift();
+          VoltajeInstance.data.labels.shift();
+          VoltajeInstance.data.datasets[0].data.shift();
+          CorrienteInstance.data.labels.shift();
+          CorrienteInstance.data.datasets[0].data.shift();
+        } else updateCount++;
+        LongitudInstance.update();
+        LatitudInstance.update();
+        AltitudInstance.update();
+        VelocidadInstance.update();
+        VoltajeInstance.update();
+        CorrienteInstance.update();
+      }
+    }
+
+    function updateData() {
+      console.log("Update Data");
+      $.ajax({
+        url: "ajax",
+        type: "GET",
+        success: function (data) {
+          var hola = data.users[0];
+          addData(hola);
+        },
+      });
+      setTimeout(updateData, updateInterval);
+    }
+
+    updateData();
+  };
+</script>
+<style>
+  .container {
+    display: flex;
+  }
+
+  .label {
+    flex: 1;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .x {
+    flex: 3;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.73);
+    margin: 10px;
+  }
+
+  h1 {
+    text-align: center;
+  }
+</style>
 {% endblock %}
